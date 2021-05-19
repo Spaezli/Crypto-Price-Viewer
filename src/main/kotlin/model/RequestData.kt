@@ -1,23 +1,18 @@
 package model
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import javafx.beans.property.SimpleStringProperty
-import java.io.File
+import kotlinx.coroutines.*
 import java.net.URL
 import java.util.*
-import javax.json.JsonObject
+import kotlin.system.measureTimeMillis
 
 //enum class Currency{USD,GBP,EUR}
 enum class Currency {
-    USD, EUR, GBP, CHF, NZD
+    USD,MWK,GMD,MZN
 }
-
-
 
 data class RequestData(
     val time: Time,
@@ -34,15 +29,41 @@ data class Bpi(
     val description: String,
 )
 
+fun apiRequests(): List<RequestData> {
+    val sum: List<RequestData>
+    val time = measureTimeMillis {
+        runBlocking {
+            val deferred: List<Deferred<RequestData>> =
+                Currency.values().map { it ->
+                    async(Dispatchers.IO) {
+                        println(Thread.currentThread())
+                        val json = URL("https://api.coindesk.com/v1/bpi/currentprice/$it.json").readText()
+                        val mapper = ObjectMapper().registerKotlinModule()
+                        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                        mapper.readValue<RequestData>(json)
+                    }
+                }
+            sum = deferred.awaitAll()
+        }
+    }
+    println(time)
+    return sum
+}
+
 
 fun main() {
-    val coinList = getCoinDeskCurrencys(File("src/main/kotlin/model/CoinDeskCurrency.json"))
-    val json = URL("https://api.coindesk.com/v1/bpi/currentprice/USD.json").readText()
-    //val json = File("src/main/kotlin/data/data.json").readText()
-    val mapper = ObjectMapper().registerKotlinModule()
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-    val t = mapper.readValue<RequestData>(json)
+//    //val coinList = getCoinDeskCurrencys(File("src/main/kotlin/model/CoinDeskCurrency.json"))
+//    val test = CoinDesk.alias
+//
+//    val json = URL("https://api.coindesk.com/v1/bpi/currentprice/USD.json").readText()
+//    //val json = File("src/main/kotlin/data/data.json").readText()
+//    val mapper = ObjectMapper().registerKotlinModule()
+//    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+//    val t = mapper.readValue<RequestData>(json)
+    //val data = apiRequests()
 
+
+    val test = apiRequests()
     print("end")
 }
 
