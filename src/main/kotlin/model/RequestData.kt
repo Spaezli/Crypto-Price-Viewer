@@ -1,5 +1,7 @@
 package model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -11,23 +13,29 @@ import kotlin.system.measureTimeMillis
 
 //enum class Currency{USD,GBP,EUR}
 enum class Currency {
-    USD,MWK,GMD,MZN
+    USD, MWK, GMD, MZN
 }
 
+
 data class RequestData(
-    val time: Time,
-    val bpi: EnumMap<Currency, Bpi>,
+    val time: Time = Time(),
+    val bpi: EnumMap<Currency, Bpi> = emptyMap<Currency, Bpi>() as EnumMap<Currency, Bpi>,
 )
 
 data class Time(
-    val updatedISO: String,
+    val updatedISO: String = "",
 )
 
 data class Bpi(
-    val code: String,
-    val rate: String,
-    val description: String,
+    val code: String = "",
+    val rate: String = "",
+    val description: String = "",
 )
+
+fun prettyPrint(r: RequestData) {
+
+}
+
 
 fun apiRequests(): List<RequestData> {
     val sum: List<RequestData>
@@ -50,6 +58,22 @@ fun apiRequests(): List<RequestData> {
     return sum
 }
 
+fun prettyRequests(o: List<RequestData>) {
+    println("The following list shows various currencies in relation to Bitcoin")
+    println("------------------------------------------------------------------")
+
+    o.forEach { it ->
+        it.bpi.forEach { currency, bpi ->
+            if (currency.name != Currency.USD.name) {
+                println(bpi.description)
+                println(bpi.rate)
+                println("---------------------")
+            }
+        }
+    }
+
+}
+
 
 fun main() {
 //    //val coinList = getCoinDeskCurrencys(File("src/main/kotlin/model/CoinDeskCurrency.json"))
@@ -62,8 +86,12 @@ fun main() {
 //    val t = mapper.readValue<RequestData>(json)
     //val data = apiRequests()
 
+    val t = CoinDesk.alias.toSet()
+    val data = apiRequests()
+    prettyRequests(data)
 
-    val test = apiRequests()
+
+
     print("end")
 }
 

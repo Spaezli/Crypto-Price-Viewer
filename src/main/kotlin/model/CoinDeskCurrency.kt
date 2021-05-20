@@ -5,6 +5,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.serialization.descriptors.SerialKind
 import java.io.File
+import java.net.URL
 
 
 object CoinDesk {
@@ -12,7 +13,7 @@ object CoinDesk {
     var alias = mutableSetOf<String>()
 
     init {
-        val json = File("src/main/kotlin/model/CoinDeskCurrency.json").readText()
+        val json = URL("https://api.coindesk.com/v1/bpi/supported-currencies.json").readText()
         val coindeskMapper = jacksonObjectMapper()
         coindeskMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).createArrayNode()
         coins = coindeskMapper.readValue<Set<Currency>>(json)
@@ -31,7 +32,10 @@ object CoinDesk {
 
 
 
+
+
 }
+
 
 
 fun getCoinDeskCurrencys(f: File): List<CoinDesk.Currency> {
