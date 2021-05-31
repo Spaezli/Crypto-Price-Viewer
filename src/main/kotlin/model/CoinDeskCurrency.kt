@@ -28,9 +28,7 @@ object CoinDesk {
         val country: String,
     )
 
-
-
-
+    data class RealCurrency(val cset: Set<String> = alias.toSet())
 
 
 
